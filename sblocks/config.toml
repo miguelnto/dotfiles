@@ -1,0 +1,17 @@
+delimeter = " | "
+
+[[block]]
+command = "battery"
+interval = 1
+signal = 3
+
+[[block]]
+command = "vol"
+interval = 0
+signal = 10
+
+[[block]]
+command = "datefmt"
+interval = 60
+signal = 1
+

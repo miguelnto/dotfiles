@@ -1,0 +1,2 @@
+sblocks &
+ndwm
