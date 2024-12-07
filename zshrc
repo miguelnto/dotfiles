@@ -20,6 +20,8 @@ alias vim=nvim
 bindkey -v
 export KEYTIMEOUT=1
 
+export BROWSER=/usr/bin/brave
+
 # Use vim keys in tab complete menu:
 bindkey -M menuselect 'h' vi-backward-char
 bindkey -M menuselect 'k' vi-up-line-or-history

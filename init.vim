@@ -1,67 +1,72 @@
+" Automatically install vim-plug
+let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+if empty(glob(data_dir . '/autoload/plug.vim'))
+  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
 
 call plug#begin('~/local/share/nvim/plugged')
-
-" # THEMES
-Plug 'ellisonleao/gruvbox.nvim'
-Plug 'pineapplegiant/spaceduck', { 'branch': 'main' }
+" THEMES
+Plug 'ribru17/bamboo.nvim'
 Plug 'folke/tokyonight.nvim'
-Plug 'blazkowolf/gruber-darker.nvim'
-" # Plenary
+Plug 'bettervim/yugen.nvim'
+Plug 'widatama/vim-phoenix'
+Plug 'n1ghtmare/noirblaze-vim'
+Plug 'aktersnurra/no-clown-fiesta.nvim'
+Plug 'luisiacc/gruvbox-baby', {'branch': 'main'}
+" PLENARY
 Plug 'nvim-lua/plenary.nvim'
-" # DISCORD RICH PRESENCE
-Plug 'andweeb/presence.nvim'
-" # LANGUAGE SUPPORT
+" LANGUAGE SUPPORT
 Plug 'dart-lang/dart-vim-plugin'
-Plug 'thosakwe/vim-flutter'
-Plug 'https://git.sr.ht/~sircmpwn/hare.vim'
-Plug 'evanleck/vim-svelte', {'branch': 'main'}
-Plug 'lervag/vimtex'
+Plug 'evanleck/vim-svelte'
 Plug 'zah/nim.vim'
-" # TELESCOPE.NVIM
+Plug 'konimarti/c3.vim'
+" TELESCOPE
 Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.8' }
 Plug 'nvim-tree/nvim-web-devicons' 
 Plug 'lewis6991/gitsigns.nvim'
-" # BARS
+Plug 'nvim-telescope/telescope-file-browser.nvim'
+" BARS
 Plug 'romgrk/barbar.nvim'
-" # TOGGLE TERMINAL
+" TOGGLE TERMINAL
 Plug 'akinsho/toggleterm.nvim', {'tag' : '*'}
-" # MASON
+" MASON
 Plug 'williamboman/mason.nvim'
 Plug 'williamboman/mason-lspconfig.nvim'
+"" :MasonUpdateAll command
+Plug 'RubixDev/mason-update-all'
 Plug 'neovim/nvim-lspconfig'
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'hrsh7th/cmp-path'
 Plug 'hrsh7th/cmp-cmdline'
 Plug 'hrsh7th/nvim-cmp'
-" # SIDEBAR
-Plug 'sidebar-nvim/sidebar.nvim'
-
+" LUA-LINE
+Plug 'nvim-lualine/lualine.nvim'
 call plug#end()
 
 lua <<EOF
   local cmp = require'cmp'
-  local sidebar = require("sidebar-nvim")
-  sidebar.setup({
-    initial_width = 20,
-    open = true,
-    sections = { "git", "files", "diagnostics" },
-  })
   cmp.setup({
-    mapping = cmp.mapping.preset.insert({
-      ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-      ['<C-f>'] = cmp.mapping.scroll_docs(4),
-      ['<C-Space>'] = cmp.mapping.complete(),
-      ['<C-e>'] = cmp.mapping.abort(),
-      ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
-    }),
-    sources = cmp.config.sources({
-      { name = 'nvim_lsp' },
-    }, {
-      { name = 'buffer' },
-    })
+  -- Installed sources:
+    sources = {
+      { name = 'path' },                              -- file paths
+      { name = 'nvim_lsp', keyword_length = 3 },      -- from language server
+      { name = 'nvim_lsp_signature_help'},            -- display function signatures with current parameter emphasized
+      { name = 'nvim_lua', keyword_length = 2},       -- complete neovim's Lua runtime API such vim.lsp.*
+      { name = 'buffer', keyword_length = 2 },        -- source current buffer
+      { name = 'vsnip', keyword_length = 2 },         -- nvim-cmp source for vim-vsnip 
+      { name = 'calc'},                               -- source for math calculation
+    },
+    mapping = {
+      ['<Up>'] = cmp.mapping.select_prev_item(),
+      ['<Down>'] = cmp.mapping.select_next_item(),
+      ['<CR>'] = cmp.mapping.confirm({select = true}),
+    },
+    window = {
+      documentation = cmp.config.window.bordered()
+    },
   })
-
   -- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
   cmp.setup.cmdline({ '/', '?' }, {
     mapping = cmp.mapping.preset.cmdline(),
@@ -81,13 +86,16 @@ lua <<EOF
     matching = { disallow_symbol_nonprefix_matching = false }
   })
 
-  -- Set up lspconfig.
+  -- Setup lspconfig
   local capabilities = require('cmp_nvim_lsp').default_capabilities()
-  -- setup toggleterm
+  -- Setup toggleterm
   require("toggleterm").setup()
 
   require("mason").setup()
-  require("mason-lspconfig").setup()
+  -- Setup lsp for some languages
+  require("mason-lspconfig").setup {
+    ensure_installed = { "rust_analyzer", "pyright", "clangd", "nim_langserver", "svelte" }
+  } 
   require("lspconfig").rust_analyzer.setup {
     capabilities = capabilities
   }
@@ -100,37 +108,51 @@ lua <<EOF
   require("lspconfig").nim_langserver.setup {
     capabilities = capabilities
   }
+  require("lspconfig").svelte.setup {
+    capabilities = capabilities
+  }
+  -- :MasonUpdateAll command
+  require('mason-update-all').setup()
+  -- Telescope file browser
+  require("telescope").load_extension "file_browser"
+  vim.keymap.set("n", "fb", ":Telescope file_browser<CR>")
+  -- Setup lualine
+  require('lualine').setup()
 EOF
 
-set termguicolors
 set number
 set hidden
+" Use the system clipboard. Requires xclip.
 set clipboard+=unnamedplus
 
-colorscheme gruvbox
-"colorscheme gruber-darker
+" Available colorschemes
+colorscheme bamboo
 " colorscheme tokyonight-night
-" colorscheme spaceduck
+" colorscheme yugen
+" colorscheme noirblaze
+" colorscheme no-clown-fiesta
+" colorscheme gruvbox-baby
 
-" barbar.nvim
+" Barbar commands
 nnoremap <silent> <C-p> <Cmd>BufferPick<CR>
-nnoremap <silent> <C-x> <Cmd>BufferPickDelete<CR>
+nnoremap <silent> <C-x> <Cmd>BufferWipeout<CR>
 nnoremap <silent> <C-h> <Cmd>BufferPrevious<CR>
 nnoremap <silent> <C-l> <Cmd>BufferNext<CR>
-nnoremap <silent> <C-1> <Cmd>BufferGoto 1<CR>
-nnoremap <silent> <C-0> <Cmd>BufferLast<CR>
+nnoremap <silent> <A-x> <Cmd>BufferPickDelete<CR>
 
-" Use zathura as the PDF viewer for vimtex
-let g:vimtex_view_method = 'zathura'
+" Compile document, be it groff, latex, markdown, etc.
+map <leader>c :w! \| !compiler "%:p"<CR>
+
+" Open corresponding pdf/html/sent preview
+map <leader>p :!opout "%:p"<CR>
 
 " Toggle the terminal window.
 nnoremap <silent><c-t> <Cmd>exe "ToggleTerm"<CR>
 tnoremap <silent><c-t> <Cmd>exe "ToggleTerm"<CR>
 
-" Find files using Telescope command-line sugar.
+" Telescope commands
 nnoremap <silent>ff <cmd>Telescope find_files<cr>
 nnoremap <silent>fg <cmd>Telescope live_grep<cr>
-nnoremap <silent>fb <cmd>Telescope buffers<cr>
+nnoremap <silent>bf <cmd>Telescope buffers<cr>
 nnoremap <silent>fh <cmd>Telescope help_tags<cr>
 nnoremap <silent>td <cmd>Telescope lsp_definitions<cr>
-
